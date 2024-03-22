@@ -1,9 +1,7 @@
 import { Mock, describe, expect, it, vi } from 'vitest';
 
-import { ModelTokens } from '@/const/modelTokens';
 import { chatHelpers } from '@/store/chat/helpers';
 import { globalHelpers } from '@/store/global/helpers';
-import { LanguageModel } from '@/types/llm';
 import { OpenAIChatMessage } from '@/types/openai/chat';
 
 import { chainSummaryTitle } from '../summaryTitle';
@@ -51,7 +49,7 @@ describe('chainSummaryTitle', () => {
           role: 'user',
         },
       ],
-      model: LanguageModel.GPT4_PREVIEW,
+      model: 'gpt-4-turbo-preview',
     });
 
     // Verify that getMessagesTokenCount was called with the correct messages

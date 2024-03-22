@@ -10,8 +10,9 @@ import {
 import isEqual from 'fast-deep-equal';
 
 import { createHeaderWithOpenAI } from '@/services/_header';
-import { OPENAI_URLS, TTS_URL } from '@/services/_url';
-import { settingsSelectors, useGlobalStore } from '@/store/global';
+import { API_ENDPOINTS } from '@/services/_url';
+import { useGlobalStore } from '@/store/global';
+import { settingsSelectors } from '@/store/global/selectors';
 import { useSessionStore } from '@/store/session';
 import { agentSelectors } from '@/store/session/selectors';
 import { TTSServer } from '@/types/agent';
@@ -35,7 +36,7 @@ export const useTTS = (content: string, config?: TTSConfig) => {
       options = {
         api: {
           headers: createHeaderWithOpenAI(),
-          serviceUrl: OPENAI_URLS.tts,
+          serviceUrl: API_ENDPOINTS.tts,
         },
         options: {
           model: ttsSettings.openAI.ttsModel,
@@ -63,7 +64,7 @@ export const useTTS = (content: string, config?: TTSConfig) => {
       useSelectedTTS = useMicrosoftSpeech;
       options = {
         api: {
-          serviceUrl: TTS_URL.microsoft,
+          serviceUrl: API_ENDPOINTS.microsoft,
         },
         options: {
           voice: config?.voice || voice,

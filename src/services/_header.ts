@@ -6,18 +6,23 @@ import {
   USE_AZURE_OPENAI,
 } from '@/const/fetch';
 import { useGlobalStore } from '@/store/global';
+import { modelProviderSelectors, settingsSelectors } from '@/store/global/selectors';
 
+/**
+ * TODO: Need to be removed after tts refactor
+ * @deprecated
+ */
 // eslint-disable-next-line no-undef
 export const createHeaderWithOpenAI = (header?: HeadersInit): HeadersInit => {
-  const openai = useGlobalStore.getState().settings.languageModel.openAI;
+  const openai = modelProviderSelectors.openAIConfig(useGlobalStore.getState());
 
-  const apiKey = openai.OPENAI_API_KEY || useGlobalStore.getState().settings.OPENAI_API_KEY || '';
-  const endpoint = openai.endpoint || useGlobalStore.getState().settings.endpoint || '';
+  const apiKey = openai.OPENAI_API_KEY || '';
+  const endpoint = openai.endpoint || '';
 
   // eslint-disable-next-line no-undef
   const result: HeadersInit = {
     ...header,
-    [LOBE_CHAT_ACCESS_CODE]: useGlobalStore.getState().settings.password || '',
+    [LOBE_CHAT_ACCESS_CODE]: settingsSelectors.password(useGlobalStore.getState()),
     [OPENAI_API_KEY_HEADER_KEY]: apiKey,
     [OPENAI_END_POINT]: endpoint,
   };

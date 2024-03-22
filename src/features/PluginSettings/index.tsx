@@ -15,8 +15,11 @@ export const transformPluginSettings = (pluginSettings: PluginSchema) => {
 
   return Object.entries(pluginSettings.properties).map(([name, i]) => ({
     desc: i.description,
+    enum: i.enum,
     format: i.format,
-    label: i.title,
+    label: i.title || name,
+    maximum: i.maximum,
+    minimum: i.minimum,
     name,
     tag: name,
     type: i.type,
@@ -28,15 +31,12 @@ interface PluginSettingsConfigProps {
   schema: PluginSchema;
 }
 
-const useStyles = createStyles(({ css, token, stylish, cx }) => ({
-  markdown: cx(
-    stylish.markdownInChat,
-    css`
-      p {
-        color: ${token.colorTextDescription};
-      }
-    `,
-  ),
+const useStyles = createStyles(({ css, token }) => ({
+  markdown: css`
+    p {
+      color: ${token.colorTextDescription};
+    }
+  `,
 }));
 
 const PluginSettingsConfig = memo<PluginSettingsConfigProps>(({ schema, id }) => {
@@ -53,17 +53,26 @@ const PluginSettingsConfig = memo<PluginSettingsConfigProps>(({ schema, id }) =>
   const items = transformPluginSettings(schema);
 
   return (
-    <Form form={form} layout={'vertical'}>
+    <Form form={form} layout={'vertical'} style={{ width: '100%' }}>
       {items.map((item) => (
         <Form.Item
-          desc={item.desc && <Markdown className={styles.markdown}>{item.desc as string}</Markdown>}
+          desc={
+            item.desc && (
+              <Markdown className={styles.markdown} variant={'chat'}>
+                {item.desc as string}
+              </Markdown>
+            )
+          }
           key={item.label}
           label={item.label}
           tag={item.tag}
         >
           <PluginSettingRender
             defaultValue={pluginSetting[item.name]}
+            enum={item.enum}
             format={item.format}
+            maximum={item.maximum}
+            minimum={item.minimum}
             onChange={(value) => {
               updatePluginSettings(id, { [item.name]: value });
             }}

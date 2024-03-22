@@ -9,6 +9,7 @@ export default defineConfig({
   test: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '~test-utils': resolve(__dirname, './tests/utils.tsx'),
     },
     coverage: {
       all: false,
@@ -16,6 +17,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'lcov', 'text-summary'],
     },
+    deps: {
+      inline: ['vitest-canvas-mock'],
+    },
+    // threads: false,
     environment: 'jsdom',
     globals: true,
     setupFiles: './tests/setup.ts',

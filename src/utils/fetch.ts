@@ -1,7 +1,8 @@
 import { t } from 'i18next';
 
-import { ChatMessageError } from '@/types/chatMessage';
+import { LOBE_CHAT_OBSERVATION_ID, LOBE_CHAT_TRACE_ID } from '@/const/trace';
 import { ErrorResponse, ErrorType } from '@/types/fetch';
+import { ChatMessageError } from '@/types/message';
 
 export const getMessageError = async (response: Response) => {
   let chatMessageError: ChatMessageError;
@@ -11,13 +12,13 @@ export const getMessageError = async (response: Response) => {
     const data = (await response.json()) as ErrorResponse;
     chatMessageError = {
       body: data.body,
-      message: t(`response.${data.errorType}`),
+      message: t(`response.${data.errorType}` as any, { ns: 'error' }),
       type: data.errorType,
     };
   } catch {
     // 如果无法正常返回，说明是常规报错
     chatMessageError = {
-      message: t(`response.${response.status}`),
+      message: t(`response.${response.status}` as any, { ns: 'error' }),
       type: response.status as ErrorType,
     };
   }
@@ -25,9 +26,21 @@ export const getMessageError = async (response: Response) => {
   return chatMessageError;
 };
 
+type SSEFinishType = 'done' | 'error' | 'abort';
+
+export type OnFinishHandler = (
+  text: string,
+  context: {
+    observationId?: string | null;
+    traceId?: string | null;
+    type?: SSEFinishType;
+  },
+) => Promise<void>;
+
 export interface FetchSSEOptions {
+  onAbort?: (text: string) => Promise<void>;
   onErrorHandle?: (error: ChatMessageError) => void;
-  onFinish?: (text: string) => Promise<void>;
+  onFinish?: OnFinishHandler;
   onMessageHandle?: (text: string) => void;
 }
 
@@ -57,73 +70,32 @@ export const fetchSSE = async (fetchFn: () => Promise<Response>, options: FetchS
   const decoder = new TextDecoder();
 
   let done = false;
+  let finishedType: SSEFinishType = 'done';
 
   while (!done) {
-    const { value, done: doneReading } = await reader.read();
-    done = doneReading;
-    const chunkValue = decoder.decode(value, { stream: true });
+    try {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      const chunkValue = decoder.decode(value, { stream: true });
 
-    output += chunkValue;
-    options.onMessageHandle?.(chunkValue);
+      output += chunkValue;
+      options.onMessageHandle?.(chunkValue);
+    } catch (error) {
+      done = true;
+
+      if ((error as TypeError).name === 'AbortError') {
+        finishedType = 'abort';
+        options?.onAbort?.(output);
+      } else {
+        finishedType = 'error';
+        console.error(error);
+      }
+    }
   }
 
-  await options?.onFinish?.(output);
+  const traceId = response.headers.get(LOBE_CHAT_TRACE_ID);
+  const observationId = response.headers.get(LOBE_CHAT_OBSERVATION_ID);
+  await options?.onFinish?.(output, { observationId, traceId, type: finishedType });
 
   return returnRes;
 };
-
-interface FetchAITaskResultParams<T> {
-  abortController?: AbortController;
-  /**
-   * 错误处理函数
-   */
-  onError?: (e: Error, rawError?: any) => void;
-  onFinish?: (text: string) => Promise<void>;
-  /**
-   * 加载状态变化处理函数
-   * @param loading - 是否处于加载状态
-   */
-  onLoadingChange?: (loading: boolean) => void;
-  /**
-   * 消息处理函数
-   * @param text - 消息内容
-   */
-  onMessageHandle?: (text: string) => void;
-  /**
-   * 请求对象
-   */
-  params: T;
-}
-
-export const fetchAIFactory =
-  <T>(fetcher: (params: T, options: { signal?: AbortSignal }) => Promise<Response>) =>
-  async ({
-    params,
-    onMessageHandle,
-    onFinish,
-    onError,
-    onLoadingChange,
-    abortController,
-  }: FetchAITaskResultParams<T>) => {
-    const errorHandle = (error: Error, errorContent?: any) => {
-      onLoadingChange?.(false);
-      if (abortController?.signal.aborted) {
-        return;
-      }
-      onError?.(error, errorContent);
-    };
-
-    onLoadingChange?.(true);
-
-    const data = await fetchSSE(() => fetcher(params, { signal: abortController?.signal }), {
-      onErrorHandle: (error) => {
-        errorHandle(new Error(error.message), error);
-      },
-      onFinish,
-      onMessageHandle,
-    }).catch(errorHandle);
-
-    onLoadingChange?.(false);
-
-    return await data?.text();
-  };

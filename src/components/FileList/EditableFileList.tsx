@@ -3,7 +3,7 @@ import { useResponsive } from 'antd-style';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import FileItem from '@/components/FileList/FileItem';
+import ImageFileItem from './ImageFileItem';
 
 interface EditableFileListProps {
   alwaysShowClose?: boolean;
@@ -20,11 +20,11 @@ const EditableFileList = memo<EditableFileListProps>(
         gap={mobile ? 4 : 6}
         horizontal
         padding={padding}
-        style={{ overflow: 'auto', width: '100%' }}
+        style={{ overflow: 'scroll', width: '100%' }}
       >
         <ImageGallery>
           {items.map((i) => (
-            <FileItem alwaysShowClose={alwaysShowClose} editable={editable} id={i} key={i} />
+            <ImageFileItem alwaysShowClose={alwaysShowClose} editable={editable} id={i} key={i} />
           ))}
         </ImageGallery>
       </Flexbox>

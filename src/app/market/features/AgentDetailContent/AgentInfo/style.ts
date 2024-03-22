@@ -1,6 +1,6 @@
 import { createStyles } from 'antd-style';
 
-export const useStyles = createStyles(({ css, token, prefixCls, stylish }) => ({
+export const useStyles = createStyles(({ css, token, prefixCls }) => ({
   author: css`
     font-size: 12px;
   `,
@@ -27,17 +27,8 @@ export const useStyles = createStyles(({ css, token, prefixCls, stylish }) => ({
       flex-direction: column;
     }
   `,
-  markdown: stylish.markdownInChat,
   nav: css`
-    padding-top: 4px;
-
-    .${prefixCls}-tabs-tab {
-      margin: 4px !important;
-
-      + .${prefixCls}-tabs-tab {
-        margin: 4px !important;
-      }
-    }
+    padding-top: 8px;
   `,
   title: css`
     font-size: 20px;

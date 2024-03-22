@@ -1,9 +1,9 @@
-import { HyperStorageOptions } from './type';
+import { HyperStorageOptionsObj } from './type';
 
-export const createKeyMapper = (options: HyperStorageOptions) => {
+export const createKeyMapper = (options: HyperStorageOptionsObj) => {
   const mapStateKeyToStorageKey = (
     key: string,
-    mode: keyof HyperStorageOptions = 'localStorage',
+    mode: keyof HyperStorageOptionsObj = 'localStorage',
   ) => {
     const media = options[mode];
     if (media === false) return key;
@@ -12,8 +12,6 @@ export const createKeyMapper = (options: HyperStorageOptions) => {
     if (!selectors) return key;
 
     let storageKey: string | undefined;
-
-    if (!selectors) return key;
 
     for (const selector of selectors) {
       if (typeof selector === 'string') {
@@ -28,7 +26,7 @@ export const createKeyMapper = (options: HyperStorageOptions) => {
 
   const getStateKeyFromStorageKey = (
     key: string,
-    mode: keyof HyperStorageOptions = 'localStorage',
+    mode: keyof HyperStorageOptionsObj = 'localStorage',
   ) => {
     const media = options[mode];
     if (media === false) return key;

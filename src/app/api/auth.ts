@@ -4,10 +4,16 @@ import { ChatErrorType } from '@/types/fetch';
 interface AuthConfig {
   accessCode?: string | null;
   apiKey?: string | null;
+  oauthAuthorized?: boolean;
 }
 
-export const checkAuth = ({ apiKey, accessCode }: AuthConfig) => {
-  const { ACCESS_CODE } = getServerConfig();
+export const checkAuth = ({ apiKey, accessCode, oauthAuthorized }: AuthConfig) => {
+  // If authorized by oauth
+  if (oauthAuthorized) {
+    return { auth: true };
+  }
+
+  const { ACCESS_CODES } = getServerConfig();
 
   // if apiKey exist
   if (apiKey) {
@@ -15,9 +21,9 @@ export const checkAuth = ({ apiKey, accessCode }: AuthConfig) => {
   }
 
   // if accessCode doesn't exist
-  if (!ACCESS_CODE) return { auth: true };
+  if (!ACCESS_CODES.length) return { auth: true };
 
-  if (accessCode !== ACCESS_CODE) {
+  if (!accessCode || !ACCESS_CODES.includes(accessCode)) {
     return { auth: false, error: ChatErrorType.InvalidAccessCode };
   }
 

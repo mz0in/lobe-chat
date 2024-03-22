@@ -55,11 +55,12 @@ const AgentModalInner = memo(() => {
             },
           ]}
           onChange={setTab}
+          variant={'compact'}
         />
       </Flexbox>
       <Flexbox style={{ padding: 16 }}>
         {tab === InfoTabs.prompt && (
-          <Markdown className={styles.markdown} fullFeaturedCodeBlock>
+          <Markdown fullFeaturedCodeBlock variant={'chat'}>
             {systemRole}
           </Markdown>
         )}
